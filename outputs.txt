@@ -1,0 +1,42 @@
+
+//Возвращение вывода консоли
+func ReturnOutputs(session *ssh.Session, mission string, outputChan chan string) {
+	out, err := session.StdoutPipe()
+	ec.Out(err, "\n[!ERROR!] Ошибка при открытии потока вывода")
+
+	r := bufio.NewReader(out)
+	var output []byte
+	output = []byte(fmt.Sprintln("(-- process --) " + mission + "..."))
+	output = append(output, []byte(fmt.Sprintln("<== OUTPUT ==> "))...)
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			break
+		}
+		output = append(output, b)
+	}
+	outputChan <- string(output)
+}
+
+//Чтение вывода консоли в режиме онлайн
+func ReadOutputs(session *ssh.Session, mission string, finished chan bool) {
+	out, err := session.StdoutPipe()
+	ec.Out(err, "\n[!ERROR!] Ошибка при открытии потока вывода")
+
+	r := bufio.NewReader(out)
+	var output []byte
+	output = []byte(fmt.Sprintln("(-- process --) " + mission + "..."))
+	output = append(output, []byte(fmt.Sprintln("<== OUTPUT ==> "))...)
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			break
+		}
+		if b == '\n' {
+			fmt.Printf("%s", output)
+			output = nil
+		}
+		output = append(output, b)
+	}
+	finished <- true
+}

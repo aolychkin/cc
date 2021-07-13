@@ -9,55 +9,69 @@ import (
 	"log"
 	"net/http"
 )
-//go build -o a.exe && a.exe
+
 var hostUser = cli.RemoteUser{User: "root", Password: "Xz4lbm777!", Host: "45.90.33.19", Port: 22}
 
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+func CoreInstallHandler(w http.ResponseWriter, r *http.Request) {
+	client := cli.ServConnect(hostUser)
+	var arr []cli.CommandLine
+	//arr = append(arr, cli.InstallPreparation)
+	//arr = append(arr, cli.InstallPodman)
+	//arr = append(arr, cli.InstallNginx)
+	//arr = append(arr, cli.InstallSnap)
+	arr = append(arr, cli.InstallCertbot)
+	RunCommand(client, arr)
 }
 
 func main() {
-	RunCommand(hostUser, "ls", "Show files")
-	http.HandleFunc("/", handler)
+	//http.HandleFunc("/cli", cliHandler)
+	http.HandleFunc("/install", CoreInstallHandler)
+	//http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-//Запуск списка команд
-func RunCommand(host cli.RemoteUser, command, mission string) {
-	session := cli.Connect(host)
-	defer session.Close()
+func RunCommand(client *ssh.Client, command []cli.CommandLine) {
+	go func() {
+		for _, x := range command {
+			if x.Line == "echo \"ccst\"" {
+				break
+			}
+			session := cli.OpenSession(client)
 
-	finished := make(chan bool)
-	fmt.Println("[" + host.User + "] running: " + command)
-	go outputInProcess(session, mission, finished)
+			finished := make(chan bool)
+			fmt.Println("\n[" + client.User() + "] running: " + x.Line)
+			go ReadOutputs(session, x.Mission, finished)
 
-	if err := session.Run(command); err != nil {
-		log.Print("[!ERROR!] Failed to run: " + err.Error())
-	}
-	<-finished
+			if err := session.Run(x.Line); err != nil {
+				log.Print("\n[!ERROR!] Команда выполнилась с ошибкой: " + err.Error())
+				//fmt.Printf("%s", str)
+			}
+
+			<-finished
+			session.Close()
+		}
+	}()
 }
 
 //Чтение вывода консоли в режиме онлайн
-func outputInProcess(session *ssh.Session, mission string, finished chan bool) {
+func ReadOutputs(session *ssh.Session, mission string, finished chan bool) {
 	out, err := session.StdoutPipe()
 	ec.Out(err, "\n[!ERROR!] Ошибка при открытии потока вывода")
 
 	r := bufio.NewReader(out)
 	var output []byte
-	fmt.Println("[process] " + mission + "...")
+	output = []byte(fmt.Sprintln("(-- process --) " + mission + "..."))
+	output = append(output, []byte(fmt.Sprintln("<== OUTPUT ==> "))...)
 	for {
 		b, err := r.ReadByte()
 		if err != nil {
 			break
 		}
-		output = append(output, b)
-
-		if b == byte('\n') {
-			fmt.Print(string(output))
+		if b == '\n' {
+			fmt.Printf("%s", output)
 			output = nil
-			continue
 		}
+		output = append(output, b)
 	}
 	finished <- true
 }

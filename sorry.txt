@@ -1,0 +1,325 @@
+//func stream(w http.ResponseWriter, r *http.Request) {
+//session := cli.Connect(hostUser)
+//defer session.Close()
+//
+//rPipe, wPipe, err := os.Pipe()
+//if err != nil {
+//log.Fatal(err)
+//}
+//
+//session.Stdout = wPipe
+//session.Stderr = wPipe
+//
+//if err := session.Run("ls"); err != nil {
+//log.Print("[!ERROR!] Failed to run: " + err.Error())
+//}
+//
+//go writeOutput(w, rPipe)
+//session.Wait()
+//wPipe.Close()
+//fmt.Println("Closed!")
+//}
+//
+//func writeOutput(w http.ResponseWriter, input io.ReadCloser) {
+//flusher, ok := w.(http.Flusher)
+//if !ok {
+//http.Error(w, "Streaming not supported", http.StatusInternalServerError)
+//
+//}
+//
+//// Important to make it work in browsers
+//w.Header().Set("Content-Type", "text/event-stream")
+//w.Header().Set("Cache-Control", "no-cache")
+//w.Header().Set("Connection", "keep-alive")
+//
+//in := bufio.NewScanner(input)
+//for in.Scan() {
+//fmt.Fprintf(w, "%s\n", in.Text())
+//flusher.Flush()
+//}
+//input.Close()
+//}
+
+
+////Запуск списка команд
+//func RunStream(host cli.RemoteUser, command, mission string) string {
+//	session := cli.Connect(host)
+//	defer session.Close()
+//
+//	rPipe, wPipe := io.Pipe()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	session.Stdout = wPipe
+//	session.Stderr = wPipe
+//
+//	if err := session.Run(command); err != nil {
+//		log.Print("[!ERROR!] Failed to run: " + err.Error())
+//	}
+//
+//	outStr := writeOutput(rPipe)
+//	wPipe.Close()
+//
+//	return outStr
+//}
+//
+//func writeOutput(input io.ReadCloser) string{
+//	in := bufio.NewScanner(input)
+//	var outStr string
+//	for in.Scan() {
+//		outStr = fmt.Sprintln(in.Text())
+//	}
+//	input.Close()
+//	return outStr
+//}
+
+//func stream(w http.ResponseWriter, r *http.Request) {
+//	session := cli.Connect(hostUser)
+//	defer session.Close()
+//
+//	rPipe, wPipe, err := os.Pipe()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	session.Stdout = wPipe
+//	session.Stderr = wPipe
+//
+//	if err := session.Run("ls"); err != nil {
+//		log.Print("[!ERROR!] Failed to run: " + err.Error())
+//	}
+//
+//	go writeOutput(w, rPipe)
+//	session.Wait()
+//	wPipe.Close()
+//	fmt.Println("Closed!")
+//}
+
+//func writeOutput(input io.ReadCloser) {
+//	in := bufio.NewScanner(input)
+//	for in.Scan() {
+//		fmt.Fprintf(w, "%s\n", in.Text())
+//	}
+//	input.Close()
+//}
+
+
+
+//ОЧЕНЬ ПОЛЕЗНЫЙ КОД
+ok := make(chan int)
+	go func() {
+		for x := range ok {
+			fmt.Println(x)
+		}
+	}()
+	ok <- 1
+	ok <- 3
+	ok <- 2
+	ok <- 5
+	ok <- 3
+	ok <- 9
+
+
+
+
+
+	package main
+
+    import (
+    	"bufio"
+    	cli "cc/CLI"
+    	ec "cc/errCatch"
+    	"fmt"
+    	"golang.org/x/crypto/ssh"
+    	"log"
+    	"net/http"
+    )
+
+    var hostUser = cli.RemoteUser{User: "root", Password: "Xz4lbm777!", Host: "45.90.33.19", Port: 22}
+
+    func handler(w http.ResponseWriter, r *http.Request) {
+    	client := cli.ServConnect(hostUser)
+    	RunCommand(client, "ls", "Show files", true, w)
+    }
+
+    func cliHandler(w http.ResponseWriter, r *http.Request) {
+    	w.Header().Set("Content-Type", "text/event-stream")
+    	w.Header().Set("Cache-Control", "no-cache")
+    	w.Header().Set("Connection", "keep-alive")
+
+    	client := cli.ServConnect(hostUser)
+
+    	com := make(chan string)
+    	go func() {
+    		for x := range com {
+    			if x == "ccst"{
+    				break
+    			}
+    			RunCommand(client, x, "Show files", true, w)
+    		}
+    	}()
+
+    	com <- "date  && echo 1"
+
+    	com <- "echo \"ccst\""
+    }
+
+    func main() {
+    	http.HandleFunc("/cli", cliHandler)
+    	//http.HandleFunc("/", handler)
+    	log.Fatal(http.ListenAndServe(":8080", nil))
+    }
+
+    func ChanCommand(client *ssh.Client, command, mission string, flag bool) {
+    	session := cli.OpenSession(client)
+    	defer session.Close()
+
+    	finished := make(chan bool)
+    	if err := session.Run(command); err != nil {
+    		log.Print("[!ERROR!] Failed to run: " + err.Error())
+    	}
+
+    	<-finished
+    }
+
+
+    //Запуск списка команд. 0 - вывод в консоль, 1 - вывод в веб
+    func RunCommand(client *ssh.Client, command, mission string, flag bool, w http.ResponseWriter) {
+    	session := cli.OpenSession(client)
+    	defer session.Close()
+
+    	finished := make(chan bool)
+    	if flag {
+    		_, _ = fmt.Fprintln(w, "\n["+client.User()+"] running: "+command)
+    		go ReadOutputsInWeb(session, mission, finished, w)
+    	} else {
+    		fmt.Println("\n[" + client.User() + "] running: " + command)
+    		go ReadOutputsInConsole(session, mission, finished)
+    	}
+
+    	if err := session.Run(command); err != nil {
+    		log.Print("\n[!ERROR!] Failed to run: " + err.Error())
+    	}
+
+    	<-finished
+    }
+
+    //Чтение вывода консоли в режиме онлайн
+    func ReadOutputsInWeb(session *ssh.Session, mission string, finished chan bool, w http.ResponseWriter) {
+    	out, err := session.StdoutPipe()
+    	ec.Out(err, "\n[!ERROR!] Ошибка при открытии потока вывода")
+
+    	r := bufio.NewReader(out)
+    	var output []byte
+    	output = []byte(fmt.Sprintln("(-- process --) " + mission + "..."))
+    	output = append(output, []byte(fmt.Sprintln("<== OUTPUT ==> "))...)
+    	for {
+    		b, err := r.ReadByte()
+    		if err != nil {
+    			break
+    		}
+    		if b == '\n' {
+    			_, _ = fmt.Fprintf(w, "%s", output)
+    			output = nil
+    		}
+    		output = append(output, b)
+    	}
+    	finished <- true
+    }
+
+    //Чтение вывода консоли в режиме онлайн
+    func ReadOutputsInConsole(session *ssh.Session, mission string, finished chan bool) {
+    	out, err := session.StdoutPipe()
+    	ec.Out(err, "\n[!ERROR!] Ошибка при открытии потока вывода")
+
+    	r := bufio.NewReader(out)
+    	var output []byte
+    	output = []byte(fmt.Sprintln("(--process--) " + mission + "..."))
+    	for {
+    		b, err := r.ReadByte()
+    		if err != nil {
+    			break
+    		}
+    		if b == '\n' {
+    			fmt.Printf("%s", output)
+    			output = nil
+    		}
+    		output = append(output, b)
+    	}
+    	finished <- true
+    }
+
+
+//Запуск списка команд. 0 - вывод в консоль, 1 - вывод в веб
+func RunCommand(client *ssh.Client, command, mission string, flag bool, w http.ResponseWriter) {
+	session := cli.OpenSession(client)
+	defer session.Close()
+
+	finished := make(chan bool)
+	if flag {
+		_, _ = fmt.Fprintln(w, "\n["+client.User()+"] running: "+command)
+		go ReadOutputsInWeb(session, mission, finished, w)
+	} else {
+		fmt.Println("\n[" + client.User() + "] running: " + command)
+		go ReadOutputsInConsole(session, mission, finished)
+	}
+
+	if err := session.Run(command); err != nil {
+		log.Print("\n[!ERROR!] Failed to run: " + err.Error())
+	}
+
+	<-finished
+}
+
+
+
+
+
+func RunCommandWeb(client *ssh.Client, command []cli.CommandLine, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	go func() {
+		for _, x := range command {
+			if x.Line == "echo \"ccst\"" {
+				break
+			}
+			session := cli.OpenSession(client)
+			finished := make(chan bool)
+
+			_, _ = fmt.Fprintln(w, "\n["+client.User()+"] running: "+x.Line)
+			go ReadOutputsInWeb(session, x.Mission, finished, w)
+
+			if err := session.Run(x.Line); err != nil {
+				log.Print("\n[!ERROR!] Failed to run: " + err.Error())
+			}
+			<-finished
+			session.Close()
+		}
+	}()
+}
+
+//Чтение вывода консоли в режиме онлайн
+func ReadOutputsInWeb(session *ssh.Session, mission string, finished chan bool, w http.ResponseWriter) {
+	out, err := session.StdoutPipe()
+	ec.Out(err, "\n[!ERROR!] Ошибка при открытии потока вывода")
+
+	r := bufio.NewReader(out)
+	var output []byte
+	output = []byte(fmt.Sprintln("(-- process --) " + mission + "..."))
+	output = append(output, []byte(fmt.Sprintln("<== OUTPUT ==> "))...)
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			break
+		}
+		if b == '\n' {
+			_, _ = fmt.Fprintf(w, "%s", output)
+			output = nil
+		}
+		output = append(output, b)
+	}
+	finished <- true
+}

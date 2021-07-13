@@ -1,0 +1,10 @@
+//Билд без брандмауэра
+go build -o a.exe && a.exe
+
+//Загрузка новой версии в гит
+git remote add origin https://github.com/aolychkin/cc.git
+git branch -M main
+git push -u origin main
+
+//Тестирование с бенчмарками памяти и указанием количества итераций
+go test -bench=. -benchmem -benchtime=1x
