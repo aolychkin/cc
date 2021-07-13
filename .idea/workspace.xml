@@ -2,10 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5396c4e7-60a2-44e5-a149-0ae2661c6e35" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CLI/clist.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/commandHelp.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/outputs.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sorry.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/streams/stream_command.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test/connection_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLI/commandInterface.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/a.exe" beforeDir="false" afterPath="$PROJECT_DIR$/a.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/aa.exe" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/CLI/commandInterface.go" beforeDir="false" afterPath="$PROJECT_DIR$/CLI/cli.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aa.exe" beforeDir="false" afterPath="$PROJECT_DIR$/a.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
@@ -42,6 +49,7 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="go.vendoring.notification.had.been.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
@@ -138,9 +146,10 @@
       <screen x="1920" y="-6" width="1920" height="1080" />
     </state>
     <state x="2660" y="311" key="#com.intellij.ide.macro.MacrosDialog/0.0.1536.864/1920.-6.1920.1080@1920.-6.1920.1080" timestamp="1622228374201" />
-    <state x="2660" y="289" key="FileChooserDialogImpl" timestamp="1622228241769">
-      <screen x="1920" y="-6" width="1920" height="1080" />
+    <state x="592" y="236" key="FileChooserDialogImpl" timestamp="1626156558139">
+      <screen x="0" y="0" width="1536" height="864" />
     </state>
+    <state x="592" y="236" key="FileChooserDialogImpl/0.0.1536.864/-1920.6.1920.1080@0.0.1536.864" timestamp="1626156558139" />
     <state x="2660" y="289" key="FileChooserDialogImpl/0.0.1536.864/1920.-6.1920.1080@1920.-6.1920.1080" timestamp="1622228241769" />
     <state width="1492" height="241" key="GridCell.Tab.0.bottom" timestamp="1622642925454">
       <screen x="0" y="0" width="1536" height="864" />
